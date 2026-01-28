@@ -277,7 +277,7 @@ export const BookingPage: React.FC = () => {
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 h-4 flex items-center">Full Name</label>
                       <input 
                         type="text" 
                         className={`w-full px-5 py-4 rounded-xl bg-slate-50 border ${errors.name ? 'border-red-300 ring-2 ring-red-100' : 'border-slate-200'} focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400 hover:bg-white`}
@@ -292,7 +292,7 @@ export const BookingPage: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Mobile Number</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 h-4 flex items-center">Mobile Number</label>
                       <input 
                         type="tel" 
                         className={`w-full px-5 py-4 rounded-xl bg-slate-50 border ${errors.phone ? 'border-red-300 ring-2 ring-red-100' : 'border-slate-200'} focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400 hover:bg-white`}
@@ -304,7 +304,7 @@ export const BookingPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email Address (Optional)</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 h-4 flex items-center">Email Address (Optional)</label>
                       <input 
                         type="email" 
                         className={`w-full px-5 py-4 rounded-xl bg-slate-50 border ${errors.email ? 'border-red-300 ring-2 ring-red-100' : 'border-slate-200'} focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400 hover:bg-white`}
@@ -317,7 +317,7 @@ export const BookingPage: React.FC = () => {
 
                     {/* Date of Birth Field */}
                     <div className="space-y-2" ref={dobWrapperRef}>
-                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 flex items-center gap-1">
+                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 flex items-center gap-1 h-4">
                           Date of Birth <Cake size={12} className="text-teal-500"/>
                        </label>
                        
