@@ -11,7 +11,7 @@ export const SandboxNavigation: React.FC = () => {
       {!isOpen && (
         <button 
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 left-4 z-[100] bg-slate-900 text-white p-3 rounded-full shadow-xl hover:bg-slate-800 transition-all hover:scale-110 border border-slate-700 group"
+          className="fixed bottom-4 left-4 z-[100] bg-slate-900 text-white w-12 h-12 flex items-center justify-center rounded-full shadow-xl hover:bg-slate-800 transition-all hover:scale-110 border-2 border-slate-700 hover:border-white group"
           title="Open Navigation Menu"
         >
           <LayoutGrid size={20} className="group-hover:rotate-90 transition-transform" />

@@ -52,11 +52,14 @@ function AppContent() {
       {/* Floating Admin Button */}
       <button 
         onClick={toggleAdmin}
-        className={`fixed bottom-6 right-20 lg:right-6 z-[60] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 transform hover:scale-110 group
-          ${isAdmin ? 'bg-red-500 shadow-red-500/30 rotate-180' : 'bg-slate-900 shadow-slate-900/40'}
+        className={`fixed bottom-4 right-4 lg:right-6 z-[60] w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all duration-500 transform hover:scale-110 border-2 group
+          ${isAdmin 
+            ? 'bg-red-500 border-red-400 hover:border-white shadow-red-500/30 rotate-180' 
+            : 'bg-slate-900 border-slate-700 hover:border-white hover:bg-slate-800 shadow-slate-900/40'
+          }
         `}
       >
-        <ShieldCheck size={24} className="text-white transition-all duration-300" />
+        <ShieldCheck size={20} className="text-white transition-all duration-300" />
         
         {/* Tooltip */}
         <span className="absolute right-full mr-4 bg-white text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
