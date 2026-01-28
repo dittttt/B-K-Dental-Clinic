@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Phone, Clock, Facebook, Instagram, Mail } from 'lucide-react';
+import { MapPin, Phone, Clock, Facebook, Instagram, Mail, Lock } from 'lucide-react';
 import { Link } from './SimpleRouter';
 import { Logo } from './ui/Logo';
 
@@ -82,12 +82,17 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center text-xs text-slate-600 pt-4">
+        <div className="flex flex-col md:flex-row justify-between items-center text-xs text-slate-600 pt-4 border-t border-slate-800/50">
           <p>&copy; {new Date().getFullYear()} B&K Dental Clinic. All rights reserved.</p>
-          <p className="mt-2 md:mt-0 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-            Dr. Kim Daclan
-          </p>
+          <div className="mt-2 md:mt-0 flex items-center gap-6">
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
+              Dr. Kim Daclan
+            </span>
+            <Link to="/admin" className="flex items-center gap-1 hover:text-teal-500 transition-colors opacity-50 hover:opacity-100">
+              <Lock size={10} /> Admin
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

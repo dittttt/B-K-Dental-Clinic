@@ -4,8 +4,10 @@ import { FadeIn } from './ui/FadeIn';
 import { Link } from './SimpleRouter';
 import { BookingCalendar } from './booking/BookingCalendar';
 import { ServiceSelector } from './booking/ServiceSelector';
+import { useBookings } from '../context/BookingContext';
 
 export const BookingPage: React.FC = () => {
+  const { addBooking, getBookedSlots } = useBookings();
   const [formState, setFormState] = useState({
     name: '',
     phone: '',
@@ -28,6 +30,9 @@ export const BookingPage: React.FC = () => {
   const calendarWrapperRef = useRef<HTMLDivElement>(null);
   const dobWrapperRef = useRef<HTMLDivElement>(null);
 
+  // Computed unavailable slots based on selected date
+  const blockedTimes = formState.date ? getBookedSlots(formState.date) : [];
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (calendarWrapperRef.current && !calendarWrapperRef.current.contains(event.target as Node)) {
@@ -41,7 +46,6 @@ export const BookingPage: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Phone Formatter & Validator
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, '');
     if (digits.length > 11) return;
@@ -103,8 +107,21 @@ export const BookingPage: React.FC = () => {
        return;
     }
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    console.log(`[System] Booking: ${JSON.stringify(formState)}`);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Save to Context
+    addBooking({
+      name: formState.name,
+      phone: formState.phone,
+      email: formState.email,
+      service: formState.type,
+      date: formState.date,
+      time: formState.time,
+      notes: formState.notes
+    });
+
     setIsSubmitting(false);
     setIsSuccess(true);
   };
@@ -144,7 +161,7 @@ export const BookingPage: React.FC = () => {
                <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">Booking Requested!</h2>
                <p className="text-slate-600 mb-6 leading-relaxed">
                  Thank you, <strong>{formState.name}</strong>. <br/>
-                 We have received your request for a <strong>{formState.type}</strong> on <strong>{formState.date}</strong> at <strong>{formState.time}</strong>.
+                 We have reserved your slot for a <strong>{formState.type}</strong> on <strong>{formState.date}</strong> at <strong>{formState.time}</strong>.
                </p>
                <div className="space-y-3">
                  <Link to="/" className="block w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
@@ -236,6 +253,7 @@ export const BookingPage: React.FC = () => {
                                     onDateTimeSelect={handleDateTimeSelect}
                                     error={errors.date || errors.time}
                                     enableTime={true}
+                                    blockedTimes={blockedTimes}
                                 />
                             </div>
                         </div>
@@ -290,7 +308,7 @@ export const BookingPage: React.FC = () => {
                       {errors.email && <p className="text-red-500 text-xs ml-1">{errors.email}</p>}
                     </div>
 
-                    {/* Date of Birth Field - Now matching the style of Appointment Date */}
+                    {/* Date of Birth Field */}
                     <div className="space-y-2" ref={dobWrapperRef}>
                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 flex items-center gap-1">
                           Date of Birth <Cake size={12} className="text-teal-500"/>

@@ -37,8 +37,11 @@ export const Navigation: React.FC = () => {
   };
 
   const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (isHome) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
     }
     setIsOpen(false);
   };
@@ -46,8 +49,8 @@ export const Navigation: React.FC = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-md py-3' : 'bg-white/80 lg:bg-transparent backdrop-blur-sm py-4 lg:py-6'}`}>
       <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link 
-          to="/" 
+        <a 
+          href="/" 
           onClick={handleLogoClick}
           className="flex items-center gap-3 z-50 group"
         >
@@ -62,7 +65,7 @@ export const Navigation: React.FC = () => {
                Dental Clinic
              </span>
            </div>
-        </Link>
+        </a>
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex items-center gap-8">

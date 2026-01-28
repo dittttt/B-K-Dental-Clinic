@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Clock, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, ChevronDown, Lock } from 'lucide-react';
 
 interface BookingCalendarProps {
   selectedDate: string;
@@ -7,6 +7,7 @@ interface BookingCalendarProps {
   onDateTimeSelect: (date: string, time: string) => void;
   error?: string;
   enableTime?: boolean;
+  blockedTimes?: string[]; // New prop for unavailable slots
 }
 
 const TIME_SLOTS = [
@@ -19,11 +20,11 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   selectedTime = '', 
   onDateTimeSelect, 
   error,
-  enableTime = true 
+  enableTime = true,
+  blockedTimes = []
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [view, setView] = useState<'days' | 'years'>('days');
-  const yearsContainerRef = useRef<HTMLDivElement>(null);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -37,9 +38,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   const handlePrevMonth = () => {
     const today = new Date();
-    // If it's for booking (enableTime=true), don't go back past current month.
-    // If it's for birthday (enableTime=false), allow going back indefinitely.
-    
     if (enableTime) {
          if (currentMonth.getMonth() > today.getMonth() || currentMonth.getFullYear() > today.getFullYear()) {
              setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
@@ -72,7 +70,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     // If enabling time (booking), disable past dates and Sundays
     if (enableTime) {
         if (date < today) return true;
-        if (date.getDay() === 0) return true;
+        if (date.getDay() === 0) return true; // Sunday is 0
     }
     // If birthday (no time), allow past dates, usually allow all dates for birthday
     // Just disable future dates for birthdays
@@ -125,11 +123,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   const renderYears = () => {
       const currentYear = new Date().getFullYear();
       const years = [];
-      const startYear = enableTime ? currentYear : 1900;
-      const endYear = enableTime ? currentYear + 2 : currentYear;
-
-      // For booking: limited future years. For birthday: 1900 to now.
-      
       const yStart = enableTime ? currentYear : 1920;
       const yEnd = enableTime ? currentYear + 5 : currentYear;
       
@@ -211,7 +204,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
           renderYears()
       )}
 
-      {/* Time Slots (Only if date selected and time enabled) */}
+      {/* Time Slots */}
       {enableTime && selectedDate && view === 'days' && (
         <div className="animate-in slide-in-from-top-2 fade-in pt-4 border-t border-slate-100">
           <div className="flex items-center gap-2 mb-3">
@@ -219,21 +212,28 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
              <span className="text-sm font-bold text-slate-800">Available Slots</span>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {TIME_SLOTS.map(time => (
-              <button
-                key={time}
-                type="button"
-                onClick={() => onDateTimeSelect(selectedDate, time)}
-                className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all
-                  ${selectedTime === time 
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900 hover:text-slate-900'
-                  }
-                `}
-              >
-                {time}
-              </button>
-            ))}
+            {TIME_SLOTS.map(time => {
+              const isBlocked = blockedTimes.includes(time);
+              return (
+                <button
+                  key={time}
+                  type="button"
+                  disabled={isBlocked}
+                  onClick={() => onDateTimeSelect(selectedDate, time)}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1 relative overflow-hidden
+                    ${selectedTime === time 
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                      : isBlocked
+                        ? 'bg-slate-100 text-slate-400 border-slate-100 cursor-not-allowed opacity-70'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900 hover:text-slate-900'
+                    }
+                  `}
+                >
+                  {isBlocked && <div className="absolute inset-0 bg-slate-200/50 flex items-center justify-center"><div className="w-[120%] h-[1px] bg-slate-400 rotate-12"></div></div>}
+                  {time.replace(' ', '')}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const RouterContext = createContext<{
   path: string;
@@ -8,10 +8,15 @@ const RouterContext = createContext<{
 export const useRouter = () => useContext(RouterContext);
 
 export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize path to root ('/') strictly.
-  // In sandboxed environments (blobs/iframes), window.location.pathname is unreliable 
-  // and often refers to the blob path, which causes the app to render nothing.
-  const [path, setPath] = useState('/'); 
+  const [path, setPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const navigate = (to: string) => {
     // 1. Parse the target url
@@ -24,36 +29,27 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       targetHash = parts[1];
     }
     
-    // If targetPath is empty string (e.g. link was "#faq"), assume current path
-    if (targetPath === '') {
-        targetPath = path; 
-    }
-    
-    // Normalize root path if just '/'
+    // Default to root if empty path
     if (targetPath === '') targetPath = '/';
 
-    // 2. Update State
-    // We intentionally DO NOT use window.history.pushState here to avoid SecurityErrors
-    // in sandboxed environments. The app works as a single-page application in memory.
-    if (targetPath !== path) {
+    // 2. Update Browser History
+    if (targetPath !== window.location.pathname) {
+      window.history.pushState({}, '', to);
       setPath(targetPath);
       window.scrollTo(0, 0);
-      
-      // Handle hash scroll after render
-      if (targetHash) {
-        setTimeout(() => {
-          const el = document.getElementById(targetHash);
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      }
     } else {
-      // Same path navigation (just scrolling)
-      if (targetHash) {
+      // Just updating hash or same page
+      window.history.pushState({}, '', to);
+      if (!targetHash) window.scrollTo(0, 0);
+    }
+
+    // 3. Handle Scrolling for anchors
+    if (targetHash) {
+      // Small delay to allow render
+      setTimeout(() => {
         const el = document.getElementById(targetHash);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo(0, 0);
-      }
+      }, 100);
     }
   };
 
