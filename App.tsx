@@ -13,7 +13,7 @@ import { AdminPage } from './components/AdminPage';
 import { PatientPortal } from './components/PatientPortal';
 import { SandboxNavigation } from './components/SandboxNavigation';
 import { BookingProvider } from './context/BookingContext';
-import { Phone, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 const HomePage = () => (
   <>
@@ -63,18 +63,6 @@ function AppContent() {
           {isAdmin ? 'Exit Admin' : 'Admin Portal'}
         </span>
       </button>
-
-      {/* Sticky Mobile Call Button (Hidden on Admin) */}
-      {!isAdmin && (
-        <div className="fixed bottom-6 right-6 lg:hidden z-40">
-          <a 
-            href="tel:09332366403" 
-            className="flex items-center justify-center w-14 h-14 bg-teal-600 text-white rounded-full shadow-xl shadow-teal-500/40 animate-bounce"
-          >
-            <Phone size={24} />
-          </a>
-        </div>
-      )}
 
       <SandboxNavigation />
 
