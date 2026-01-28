@@ -9,7 +9,7 @@ export interface Booking {
   service: string;
   date: string; // YYYY-MM-DD
   time: string;
-  status: 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes?: string;
   timestamp: number;
 }
@@ -19,6 +19,8 @@ interface BookingContextType {
   addBooking: (booking: Omit<Booking, 'id' | 'timestamp' | 'status'>) => Promise<void>;
   getBookedSlots: (date: string) => string[];
   cancelBooking: (id: string) => Promise<void>;
+  confirmBooking: (id: string) => Promise<void>;
+  completeBooking: (id: string) => Promise<void>;
   getPatientBookings: (phone: string) => Booking[];
   isLoading: boolean;
 }
@@ -52,7 +54,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         } catch (err) {
           console.error("Error fetching from Supabase:", err);
-          // Fallback to local if fetch fails
           loadFromLocal();
         }
       } else {
@@ -84,7 +85,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           service: 'Consultation',
           date: dateStr,
           time: '10:00 AM',
-          status: 'confirmed',
+          status: 'pending',
           timestamp: Date.now()
         }
       ]);
@@ -92,18 +93,17 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addBooking = async (data: Omit<Booking, 'id' | 'timestamp' | 'status'>) => {
-    // Prepare local fallback object just in case
+    // Default to 'pending' instead of 'confirmed'
     const localFallbackId = Math.random().toString(36).substr(2, 9);
     const newBooking: Booking = {
       ...data,
-      status: 'confirmed',
+      status: 'pending',
       id: localFallbackId,
       timestamp: Date.now()
     };
 
     if (isSupabaseConfigured && supabase) {
       try {
-        // Insert and SELECT the returned data to get the real ID
         const { data: insertedData, error } = await supabase
           .from('bookings')
           .insert([{
@@ -114,7 +114,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
              date: data.date,
              time: data.time,
              notes: data.notes,
-             status: 'confirmed'
+             status: 'pending' // Changed from 'confirmed'
           }])
           .select()
           .single();
@@ -122,7 +122,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (error) throw error;
 
         if (insertedData) {
-          // Use the real data from DB
           const confirmedBooking: Booking = {
             ...insertedData,
             timestamp: new Date(insertedData.created_at).getTime()
@@ -131,7 +130,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       } catch (err) {
         console.error("Supabase insert error:", err);
-        // Fallback to local on error so the user doesn't think it failed completely
         setBookings(prev => {
           const updated = [...prev, newBooking];
           localStorage.setItem('bk_bookings', JSON.stringify(updated));
@@ -139,7 +137,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       }
     } else {
-      // Local Only Mode
       setBookings(prev => {
         const updated = [...prev, newBooking];
         localStorage.setItem('bk_bookings', JSON.stringify(updated));
@@ -148,31 +145,36 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const cancelBooking = async (id: string) => {
+  const updateBookingStatus = async (id: string, newStatus: Booking['status']) => {
     if (isSupabaseConfigured && supabase) {
         try {
             const { error } = await supabase
                 .from('bookings')
-                .update({ status: 'cancelled' })
+                .update({ status: newStatus })
                 .eq('id', id);
             
             if (error) throw error;
 
-            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' as const } : b));
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
         } catch (err) {
-            console.error("Error cancelling:", err);
-            alert("Failed to cancel booking. Please try refreshing the page.");
+            console.error(`Error updating status to ${newStatus}:`, err);
+            alert("Failed to update booking. Please try refreshing the page.");
         }
     } else {
         setBookings(prev => {
-            const updated = prev.map(b => b.id === id ? { ...b, status: 'cancelled' as const } : b);
+            const updated = prev.map(b => b.id === id ? { ...b, status: newStatus } : b);
             localStorage.setItem('bk_bookings', JSON.stringify(updated));
             return updated;
         });
     }
   };
 
+  const cancelBooking = async (id: string) => updateBookingStatus(id, 'cancelled');
+  const confirmBooking = async (id: string) => updateBookingStatus(id, 'confirmed');
+  const completeBooking = async (id: string) => updateBookingStatus(id, 'completed');
+
   const getBookedSlots = (date: string) => {
+    // We filter out cancelled, but 'pending' still blocks the slot to prevent double booking
     return bookings
       .filter(b => b.date === date && b.status !== 'cancelled')
       .map(b => b.time);
@@ -184,7 +186,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <BookingContext.Provider value={{ bookings, addBooking, getBookedSlots, cancelBooking, getPatientBookings, isLoading }}>
+    <BookingContext.Provider value={{ bookings, addBooking, getBookedSlots, cancelBooking, confirmBooking, completeBooking, getPatientBookings, isLoading }}>
       {children}
     </BookingContext.Provider>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Calendar, Clock, FileText, User, Search, History, LogOut, AlertCircle, CheckCircle } from 'lucide-react';
+import { Phone, Calendar, Clock, FileText, User, Search, History, LogOut, AlertCircle, CheckCircle, Hourglass } from 'lucide-react';
 import { FadeIn } from './ui/FadeIn';
 import { useBookings } from '../context/BookingContext';
 import { Link } from './SimpleRouter';
@@ -47,11 +47,11 @@ export const PatientPortal: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
 
   const upcoming = myBookings
-    .filter(b => b.date >= today && b.status !== 'cancelled')
+    .filter(b => b.date >= today && b.status !== 'cancelled' && b.status !== 'completed')
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const history = myBookings
-    .filter(b => b.date < today || b.status === 'cancelled')
+    .filter(b => b.date < today || b.status === 'cancelled' || b.status === 'completed')
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const displayedBookings = activeTab === 'upcoming' ? upcoming : history;
@@ -147,7 +147,12 @@ export const PatientPortal: React.FC = () => {
                         {displayedBookings.map(apt => (
                         <div key={apt.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                             {/* Status Bar */}
-                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${apt.status === 'confirmed' ? 'bg-teal-500' : apt.status === 'cancelled' ? 'bg-red-300' : 'bg-slate-300'}`} />
+                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 
+                                ${apt.status === 'confirmed' ? 'bg-teal-500' 
+                                : apt.status === 'cancelled' ? 'bg-red-300' 
+                                : apt.status === 'pending' ? 'bg-yellow-400'
+                                : 'bg-indigo-300'}`} // Completed
+                            />
                             
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-3">
                                 <div className="flex items-start gap-4">
@@ -170,13 +175,18 @@ export const PatientPortal: React.FC = () => {
                                             <CheckCircle size={12} /> Confirmed
                                         </span>
                                     )}
+                                    {apt.status === 'pending' && (
+                                        <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                            <Hourglass size={12} /> Pending
+                                        </span>
+                                    )}
                                     {apt.status === 'cancelled' && (
                                         <span className="bg-red-50 text-red-500 text-xs font-bold px-3 py-1 rounded-full">
                                             Cancelled
                                         </span>
                                     )}
                                     {apt.status === 'completed' && (
-                                        <span className="bg-slate-100 text-slate-500 text-xs font-bold px-3 py-1 rounded-full">
+                                        <span className="bg-indigo-100 text-indigo-500 text-xs font-bold px-3 py-1 rounded-full">
                                             Completed
                                         </span>
                                     )}

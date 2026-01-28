@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AlertCircle, Check, Loader2, Sparkles, Home, Mail, Cake, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Sparkles, Home, Mail, Cake, ChevronDown, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { FadeIn } from './ui/FadeIn';
 import { Link } from './SimpleRouter';
 import { BookingCalendar } from './booking/BookingCalendar';
@@ -157,15 +157,19 @@ export const BookingPage: React.FC = () => {
         <div className="container mx-auto px-4 max-w-lg">
           <FadeIn>
             <div className="bg-white rounded-[2rem] shadow-2xl p-10 text-center border border-teal-100 relative overflow-hidden">
-               <div className="absolute inset-0 bg-teal-50/50 -z-10"></div>
-               <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6 text-teal-600 animate-bounce">
-                 <Check size={40} strokeWidth={4} />
+               <div className="absolute inset-0 bg-yellow-50/50 -z-10"></div>
+               <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 text-yellow-600 animate-pulse">
+                 <Clock size={40} strokeWidth={3} />
                </div>
-               <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">Booking Requested!</h2>
+               <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">Request Sent</h2>
                <p className="text-slate-600 mb-6 leading-relaxed">
                  Thank you, <strong>{formState.name}</strong>. <br/>
-                 We have reserved your slot for a <strong>{formState.type}</strong> on <strong>{formState.date}</strong> at <strong>{formState.time}</strong>.
+                 Your request for a <strong>{formState.type}</strong> on <strong>{formState.date}</strong> at <strong>{formState.time}</strong> has been received.
                </p>
+               <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl text-sm font-medium mb-6 flex items-start gap-2 text-left">
+                  <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+                  <p>This slot is being held for you. We will review and confirm your appointment shortly.</p>
+               </div>
                <div className="space-y-3">
                  <Link to="/" className="block w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
                    <Home size={18} /> Back to Home
@@ -368,7 +372,7 @@ export const BookingPage: React.FC = () => {
 
                 <div className="pt-4">
                   <button type="submit" disabled={isSubmitting} className="w-full bg-teal-600 disabled:bg-teal-400 text-white font-bold text-lg py-5 rounded-xl hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-500/20 transform hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group">
-                    {isSubmitting ? <><Loader2 size={24} className="animate-spin" /><span>Processing...</span></> : <><span>Confirm Booking</span><div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors"><Check size={16} strokeWidth={3} /></div></>}
+                    {isSubmitting ? <><Loader2 size={24} className="animate-spin" /><span>Processing...</span></> : <><span>Request Booking</span><div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors"><Check size={16} strokeWidth={3} /></div></>}
                   </button>
                   <p className="text-center text-xs text-slate-400 mt-4">By booking, you agree to our clinic policies. Payment is done at the clinic.</p>
                 </div>
