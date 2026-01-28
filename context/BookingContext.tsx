@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 export interface Booking {
   id: string;
@@ -15,24 +16,60 @@ export interface Booking {
 
 interface BookingContextType {
   bookings: Booking[];
-  addBooking: (booking: Omit<Booking, 'id' | 'timestamp' | 'status'>) => void;
+  addBooking: (booking: Omit<Booking, 'id' | 'timestamp' | 'status'>) => Promise<void>;
   getBookedSlots: (date: string) => string[];
-  cancelBooking: (id: string) => void;
+  cancelBooking: (id: string) => Promise<void>;
   getPatientBookings: (phone: string) => Booking[];
+  isLoading: boolean;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
 export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount (Simulating database persistence)
+  // Initial Fetch
   useEffect(() => {
+    const fetchBookings = async () => {
+      setIsLoading(true);
+      
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const { data, error } = await supabase
+            .from('bookings')
+            .select('*');
+            
+          if (error) throw error;
+          
+          if (data) {
+            // Map DB fields to our internal types
+            const formatted: Booking[] = data.map((b: any) => ({
+              ...b,
+              timestamp: new Date(b.created_at).getTime()
+            }));
+            setBookings(formatted);
+          }
+        } catch (err) {
+          console.error("Error fetching from Supabase:", err);
+          // Fallback to local if fetch fails
+          loadFromLocal();
+        }
+      } else {
+        loadFromLocal();
+      }
+      setIsLoading(false);
+    };
+
+    fetchBookings();
+  }, []);
+
+  const loadFromLocal = () => {
     const stored = localStorage.getItem('bk_bookings');
     if (stored) {
       setBookings(JSON.parse(stored));
     } else {
-      // Seed some dummy data for demonstration
+      // Seed dummy data if empty
       const today = new Date();
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -41,7 +78,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setBookings([
         {
           id: '1',
-          name: 'Sarah Connor',
+          name: 'Sarah Connor (Demo)',
           phone: '0917 123 4567',
           email: 'sarah@test.com',
           service: 'Consultation',
@@ -52,21 +89,87 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       ]);
     }
-  }, []);
+  };
 
-  // Save to localStorage whenever bookings change
-  useEffect(() => {
-    localStorage.setItem('bk_bookings', JSON.stringify(bookings));
-  }, [bookings]);
-
-  const addBooking = (data: Omit<Booking, 'id' | 'timestamp' | 'status'>) => {
+  const addBooking = async (data: Omit<Booking, 'id' | 'timestamp' | 'status'>) => {
+    // Prepare local fallback object just in case
+    const localFallbackId = Math.random().toString(36).substr(2, 9);
     const newBooking: Booking = {
       ...data,
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now(),
-      status: 'confirmed'
+      status: 'confirmed',
+      id: localFallbackId,
+      timestamp: Date.now()
     };
-    setBookings(prev => [...prev, newBooking]);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        // Insert and SELECT the returned data to get the real ID
+        const { data: insertedData, error } = await supabase
+          .from('bookings')
+          .insert([{
+             name: data.name,
+             phone: data.phone,
+             email: data.email,
+             service: data.service,
+             date: data.date,
+             time: data.time,
+             notes: data.notes,
+             status: 'confirmed'
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        if (insertedData) {
+          // Use the real data from DB
+          const confirmedBooking: Booking = {
+            ...insertedData,
+            timestamp: new Date(insertedData.created_at).getTime()
+          };
+          setBookings(prev => [...prev, confirmedBooking]);
+        }
+      } catch (err) {
+        console.error("Supabase insert error:", err);
+        // Fallback to local on error so the user doesn't think it failed completely
+        setBookings(prev => {
+          const updated = [...prev, newBooking];
+          localStorage.setItem('bk_bookings', JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } else {
+      // Local Only Mode
+      setBookings(prev => {
+        const updated = [...prev, newBooking];
+        localStorage.setItem('bk_bookings', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
+  const cancelBooking = async (id: string) => {
+    if (isSupabaseConfigured && supabase) {
+        try {
+            const { error } = await supabase
+                .from('bookings')
+                .update({ status: 'cancelled' })
+                .eq('id', id);
+            
+            if (error) throw error;
+
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' as const } : b));
+        } catch (err) {
+            console.error("Error cancelling:", err);
+            alert("Failed to cancel booking. Please try refreshing the page.");
+        }
+    } else {
+        setBookings(prev => {
+            const updated = prev.map(b => b.id === id ? { ...b, status: 'cancelled' as const } : b);
+            localStorage.setItem('bk_bookings', JSON.stringify(updated));
+            return updated;
+        });
+    }
   };
 
   const getBookedSlots = (date: string) => {
@@ -75,18 +178,13 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       .map(b => b.time);
   };
 
-  const cancelBooking = (id: string) => {
-    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
-  };
-
   const getPatientBookings = (phone: string) => {
-    // Normalize phone numbers (remove spaces/non-digits) for comparison
     const cleanSearch = phone.replace(/\D/g, '');
     return bookings.filter(b => b.phone.replace(/\D/g, '') === cleanSearch);
   };
 
   return (
-    <BookingContext.Provider value={{ bookings, addBooking, getBookedSlots, cancelBooking, getPatientBookings }}>
+    <BookingContext.Provider value={{ bookings, addBooking, getBookedSlots, cancelBooking, getPatientBookings, isLoading }}>
       {children}
     </BookingContext.Provider>
   );

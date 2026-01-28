@@ -108,22 +108,25 @@ export const BookingPage: React.FC = () => {
     }
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Save to Context
-    addBooking({
-      name: formState.name,
-      phone: formState.phone,
-      email: formState.email,
-      service: formState.type,
-      date: formState.date,
-      time: formState.time,
-      notes: formState.notes
-    });
+    try {
+        // Save to Context (Async)
+        await addBooking({
+        name: formState.name,
+        phone: formState.phone,
+        email: formState.email,
+        service: formState.type,
+        date: formState.date,
+        time: formState.time,
+        notes: formState.notes
+        });
 
-    setIsSubmitting(false);
-    setIsSuccess(true);
+        setIsSuccess(true);
+    } catch (error) {
+        console.error("Booking failed", error);
+        alert("Something went wrong. Please try again.");
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -365,7 +368,7 @@ export const BookingPage: React.FC = () => {
 
                 <div className="pt-4">
                   <button type="submit" disabled={isSubmitting} className="w-full bg-teal-600 disabled:bg-teal-400 text-white font-bold text-lg py-5 rounded-xl hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-500/20 transform hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group">
-                    {isSubmitting ? <><Loader2 size={24} className="animate-spin" /><span>Submitting...</span></> : <><span>Confirm Booking</span><div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors"><Check size={16} strokeWidth={3} /></div></>}
+                    {isSubmitting ? <><Loader2 size={24} className="animate-spin" /><span>Processing...</span></> : <><span>Confirm Booking</span><div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors"><Check size={16} strokeWidth={3} /></div></>}
                   </button>
                   <p className="text-center text-xs text-slate-400 mt-4">By booking, you agree to our clinic policies. Payment is done at the clinic.</p>
                 </div>

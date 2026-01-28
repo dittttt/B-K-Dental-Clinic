@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Lock, Search, Calendar, Users, Clock, LogOut, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, Search, Calendar, Users, Clock, LogOut, CheckCircle, Eye, EyeOff, Wifi, WifiOff, Database } from 'lucide-react';
 import { useBookings } from '../context/BookingContext';
 import { FadeIn } from './ui/FadeIn';
+import { isSupabaseConfigured } from '../lib/supabaseClient';
 
 export const AdminPage: React.FC = () => {
   const { bookings, cancelBooking } = useBookings();
@@ -81,10 +82,17 @@ export const AdminPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-24 pb-12">
       <div className="container mx-auto px-4 max-w-6xl">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
              <h1 className="text-3xl font-serif font-bold text-slate-900">Clinic Dashboard</h1>
-             <p className="text-slate-500">Manage appointments and schedules</p>
+             <div className="flex items-center gap-2 mt-1">
+               <p className="text-slate-500">Manage appointments and schedules</p>
+               <span className="text-slate-300">|</span>
+               <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold border ${isSupabaseConfigured ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>
+                  {isSupabaseConfigured ? <Wifi size={12} /> : <WifiOff size={12} />}
+                  {isSupabaseConfigured ? 'Cloud Connected' : 'Local Mode'}
+               </div>
+             </div>
           </div>
           <button 
             onClick={() => setIsAuthenticated(false)}
