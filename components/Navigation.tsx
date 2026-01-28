@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Phone, CalendarCheck } from 'lucide-react';
+import { Menu, X, Phone, CalendarCheck, User } from 'lucide-react';
 import { Link, useRouter } from './SimpleRouter';
 import { Logo } from './ui/Logo';
 
@@ -79,6 +79,13 @@ export const Navigation: React.FC = () => {
               {link.name}
             </a>
           ))}
+          
+          <div className="h-6 w-px bg-slate-300 mx-2"></div>
+
+          <Link to="/portal" className="text-sm font-bold text-slate-600 hover:text-teal-600 flex items-center gap-1 transition-colors uppercase tracking-widest">
+             <User size={16} /> My Bookings
+          </Link>
+
           <Link 
             to="/booking" 
             className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-full font-medium hover:bg-teal-600 transition-all shadow-lg hover:shadow-teal-500/30 transform hover:-translate-y-0.5"
@@ -112,7 +119,17 @@ export const Navigation: React.FC = () => {
               {link.name}
             </a>
           ))}
+          
           <div className="w-full h-px bg-slate-100 my-2"></div>
+          
+          <Link 
+            to="/portal"
+            onClick={() => setIsOpen(false)}
+            className="text-slate-600 font-bold flex items-center gap-2 py-2"
+          >
+             <User size={18} /> My Appointments
+          </Link>
+          
           <a 
             href="tel:09332366403"
             className="flex items-center gap-2 text-slate-600 font-medium py-2"

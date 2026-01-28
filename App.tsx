@@ -10,6 +10,8 @@ import { Footer } from './components/Footer';
 import { BookingPage } from './components/BookingPage';
 import { LocationSection } from './components/LocationSection';
 import { AdminPage } from './components/AdminPage';
+import { PatientPortal } from './components/PatientPortal';
+import { SandboxNavigation } from './components/SandboxNavigation';
 import { BookingProvider } from './context/BookingContext';
 import { Phone, ShieldCheck } from 'lucide-react';
 
@@ -44,6 +46,7 @@ function AppContent() {
         {path === '/' && <HomePage />}
         {path === '/booking' && <BookingPage />}
         {path === '/admin' && <AdminPage />}
+        {path === '/portal' && <PatientPortal />}
       </main>
 
       {/* Floating Admin Button */}
@@ -72,6 +75,8 @@ function AppContent() {
           </a>
         </div>
       )}
+
+      <SandboxNavigation />
 
       {!isAdmin && <Footer />}
     </div>

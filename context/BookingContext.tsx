@@ -18,6 +18,7 @@ interface BookingContextType {
   addBooking: (booking: Omit<Booking, 'id' | 'timestamp' | 'status'>) => void;
   getBookedSlots: (date: string) => string[];
   cancelBooking: (id: string) => void;
+  getPatientBookings: (phone: string) => Booking[];
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -41,7 +42,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         {
           id: '1',
           name: 'Sarah Connor',
-          phone: '09171234567',
+          phone: '0917 123 4567',
           email: 'sarah@test.com',
           service: 'Consultation',
           date: dateStr,
@@ -78,8 +79,14 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
   };
 
+  const getPatientBookings = (phone: string) => {
+    // Normalize phone numbers (remove spaces/non-digits) for comparison
+    const cleanSearch = phone.replace(/\D/g, '');
+    return bookings.filter(b => b.phone.replace(/\D/g, '') === cleanSearch);
+  };
+
   return (
-    <BookingContext.Provider value={{ bookings, addBooking, getBookedSlots, cancelBooking }}>
+    <BookingContext.Provider value={{ bookings, addBooking, getBookedSlots, cancelBooking, getPatientBookings }}>
       {children}
     </BookingContext.Provider>
   );

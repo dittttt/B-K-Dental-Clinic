@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Phone, Clock, Facebook, Instagram, Mail, Lock } from 'lucide-react';
+import { MapPin, Phone, Clock, Facebook, Instagram, Mail, Lock, User } from 'lucide-react';
 import { Link } from './SimpleRouter';
 import { Logo } from './ui/Logo';
 
@@ -38,9 +38,9 @@ export const Footer: React.FC = () => {
             <ul className="space-y-4 text-sm">
               <li><Link to="/" className="hover:text-teal-400 transition-colors">Home</Link></li>
               <li><a href="/#services" className="hover:text-teal-400 transition-colors">Services</a></li>
-              <li><a href="/#gallery" className="hover:text-teal-400 transition-colors">Gallery</a></li>
-              <li><a href="/#faq" className="hover:text-teal-400 transition-colors">FAQ</a></li>
               <li><Link to="/booking" className="hover:text-teal-400 transition-colors">Book Appointment</Link></li>
+              <li><Link to="/portal" className="hover:text-teal-400 transition-colors flex items-center gap-2"><User size={14}/> Patient Portal</Link></li>
+              <li><a href="/#faq" className="hover:text-teal-400 transition-colors">FAQ</a></li>
             </ul>
           </div>
 
