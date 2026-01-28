@@ -11,8 +11,14 @@ interface BookingCalendarProps {
 }
 
 const TIME_SLOTS = [
-  "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
-  "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
+  "09:00 AM", "09:30 AM",
+  "10:00 AM", "10:30 AM",
+  "11:00 AM", "11:30 AM",
+  "12:00 PM", "12:30 PM",
+  "01:00 PM", "01:30 PM",
+  "02:00 PM", "02:30 PM",
+  "03:00 PM", "03:30 PM",
+  "04:00 PM", "04:30 PM"
 ];
 
 export const BookingCalendar: React.FC<BookingCalendarProps> = ({ 
@@ -78,6 +84,45 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
         if (date > today) return true;
     }
 
+    return false;
+  };
+
+  // Logic to check if a specific time slot has passed for the selected day
+  const isTimeSlotPast = (timeStr: string) => {
+    if (!selectedDate) return false;
+
+    // 1. Get current time
+    const now = new Date();
+    
+    // 2. Format today as YYYY-MM-DD to compare with selectedDate
+    const todayYear = now.getFullYear();
+    const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const todayDay = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${todayYear}-${todayMonth}-${todayDay}`;
+
+    // 3. If selected date is in future, it's not past
+    if (selectedDate > todayStr) return false;
+    
+    // 4. If selected date is in past (though calendar disables this), it's past
+    if (selectedDate < todayStr) return true;
+
+    // 5. If today, check time with 10 minute grace period
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    if (modifier === 'AM' && hours === 12) hours = 0;
+    
+    const slotDate = new Date();
+    slotDate.setHours(hours, minutes, 0, 0);
+    
+    // Grace period: Allow booking until slotTime + 10 minutes
+    const gracePeriod = 10 * 60 * 1000;
+    
+    // If Now > Slot + 10mins, then it is past/unavailable
+    if (now.getTime() > (slotDate.getTime() + gracePeriod)) {
+        return true;
+    }
+    
     return false;
   };
 
@@ -214,22 +259,25 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {TIME_SLOTS.map(time => {
               const isBlocked = blockedTimes.includes(time);
+              const isPast = isTimeSlotPast(time);
+              const isDisabled = isBlocked || isPast;
+
               return (
                 <button
                   key={time}
                   type="button"
-                  disabled={isBlocked}
+                  disabled={isDisabled}
                   onClick={() => onDateTimeSelect(selectedDate, time)}
                   className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1 relative overflow-hidden
                     ${selectedTime === time 
                       ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
-                      : isBlocked
-                        ? 'bg-slate-100 text-slate-400 border-slate-100 cursor-not-allowed opacity-70'
+                      : isDisabled
+                        ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
                         : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900 hover:text-slate-900'
                     }
                   `}
                 >
-                  {isBlocked && <div className="absolute inset-0 bg-slate-200/50 flex items-center justify-center"><div className="w-[120%] h-[1px] bg-slate-400 rotate-12"></div></div>}
+                  {isBlocked && !isPast && <div className="absolute inset-0 bg-slate-200/50 flex items-center justify-center"><div className="w-[120%] h-[1px] bg-slate-400 rotate-12"></div></div>}
                   {time.replace(' ', '')}
                 </button>
               );
